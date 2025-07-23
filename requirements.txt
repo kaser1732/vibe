@@ -1,2 +1,3 @@
 streamlit>=1.25
 supabase
+python_version=="3.10"

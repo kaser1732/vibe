@@ -10,8 +10,8 @@ SUPABASE_KEY = st.secrets["SUPABASE_KEY"]
 
 supabase: Client = create_client(SUPABASE_URL, SUPABASE_KEY)
 
-st.set_page_config(page_title="💬 실시간 채팅", layout="centered")
-st.title("💬 실시간 채팅 앱")
+st.set_page_config(page_title="암호화", layout="centered")
+st.title("Chatting")
 
 # 사용자 닉네임 받기
 if "username" not in st.session_state:

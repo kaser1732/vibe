@@ -18,7 +18,7 @@ if "username" not in st.session_state:
     username = st.text_input("닉네임을 입력하세요")
     if st.button("입장") and username.strip():
         st.session_state.username = username
-        st.experimental_rerun()
+        st.rerun()  # ✅ 최신 함수로 변경
     st.stop()
 
 # 메시지 입력
@@ -30,7 +30,7 @@ if st.button("전송") and message.strip():
         "message": message,
         "timestamp": datetime.utcnow().isoformat()
     }).execute()
-    st.experimental_rerun()
+    st.rerun()  # ✅ 최신 함수로 변경
 
 # 메시지 출력
 st.subheader("💬 채팅 내역")
@@ -40,4 +40,4 @@ for msg in data.data:
 
 # 1초마다 새로고침
 time.sleep(1)
-st.experimental_rerun()
+st.rerun()  # ✅ 최신 함수로 변경

@@ -55,7 +55,7 @@ def exit_user():
 
     del st.session_state["username"]
     del st.session_state["ip"]
-    st.toast("👋 채팅방을 나갔습니다.", icon="✅", duration=5)
+    st.toast("👋 채팅방을 나갔습니다.", icon="✅")
     st.rerun()
 
 # --------------------------
@@ -85,11 +85,11 @@ if "username" not in st.session_state:
             st.stop()
 
         if any(u.get("ip") == user_ip for u in active):
-            st.toast("❌ 동일한 기기(IP)에서는 중복 접속할 수 없습니다.", icon="⚠️", duration=10)
+            st.toast("❌ 동일한 기기(IP)에서는 중복 접속할 수 없습니다.", icon="⚠️")
             st.stop()
 
         if len(active) >= 3:
-            st.toast("❌ 채팅방 정원은 최대 3명입니다. 잠시 후 다시 시도해주세요.", icon="⚠️", duration=10)
+            st.toast("❌ 채팅방 정원은 최대 3명입니다. 잠시 후 다시 시도해주세요.", icon="⚠️")
             st.stop()
 
         try:
@@ -138,7 +138,6 @@ if st.button("전송") and message.strip():
             "message": encrypted,
             "timestamp": datetime.utcnow().isoformat()
         }).execute()
-        st.query_params(msg_input="")  # 최신 API로 변경
         st.rerun()
     except Exception as e:
         st.error("❌ 메시지 전송 중 오류")

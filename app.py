@@ -31,10 +31,16 @@ st.title("Chatting")
 def exit_user():
     username = st.session_state.get("username")
     ip = st.session_state.get("ip")
-    if not username:
+    if not username or not ip:
         return
 
-    supabase.table("active_users").delete().eq("username", username).eq("ip", ip).execute()
+    try:
+        supabase.table("active_users").delete().match({"username": username, "ip": ip}).execute()
+    except Exception as e:
+        st.error("❌ 나가기 처리 중 오류 발생")
+        st.exception(e)
+        return
+
     active = supabase.table("active_users").select("*").execute().data
 
     if len(active) == 0:
@@ -132,7 +138,7 @@ if st.button("전송") and message.strip():
             "message": encrypted,
             "timestamp": datetime.utcnow().isoformat()
         }).execute()
-        st.experimental_set_query_params(msg_input="")
+        st.query_params(msg_input="")  # 최신 API로 변경
         st.rerun()
     except Exception as e:
         st.error("❌ 메시지 전송 중 오류")
@@ -149,7 +155,7 @@ try:
         try:
             decrypted = cipher.decrypt(msg["message"].encode()).decode()
         except Exception:
-            decrypted = "⚠️ 복호화 실패"
+            decrypted = "⚠️ 보호화 실패"
         st.markdown(f"**[{msg['username']}]**: {decrypted}")
 except Exception as e:
     st.error("❌ 메시지 불러오기 실패")

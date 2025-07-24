@@ -5,6 +5,7 @@ from cryptography.fernet import Fernet
 from streamlit_autorefresh import st_autorefresh
 import uuid
 import json
+import socket
 
 # --------------------------
 # 🔐 Supabase & 암호화 설정
@@ -29,16 +30,14 @@ st.title("Chatting")
 # --------------------------
 def exit_user():
     username = st.session_state.get("username")
+    ip = st.session_state.get("ip")
     if not username:
         return
 
-    # 1. 현재 유저 제거
-    supabase.table("active_users").delete().eq("username", username).execute()
-
-    # 2. 남은 유저 확인
+    supabase.table("active_users").delete().eq("username", username).eq("ip", ip).execute()
     active = supabase.table("active_users").select("*").execute().data
+
     if len(active) == 0:
-        # 3. 모든 유저 나감 → 메시지 백업 후 삭제
         messages = supabase.table("messages").select("*").execute().data
         if messages:
             supabase.table("chat_logs").insert({
@@ -48,24 +47,43 @@ def exit_user():
             }).execute()
             supabase.table("messages").delete().neq("id", "").execute()
 
-    # 4. 세션 초기화
     del st.session_state["username"]
-    st.success("👋 채팅방을 나갔습니다.")
+    del st.session_state["ip"]
+    st.toast("👋 채팅방을 나갔습니다.", icon="✅", duration=5)
     st.rerun()
 
 # --------------------------
-# 👤 닉네임 입력 (3명 제한)
+# 사용자 IP 가져오기
+# --------------------------
+def get_ip():
+    hostname = socket.gethostname()
+    return socket.gethostbyname(hostname)
+
+# --------------------------
+# 👤 닉네임 입력 (3명 + 중복 IP 제한)
 # --------------------------
 if "username" not in st.session_state:
     username = st.text_input("닉네임을 입력하세요")
     if st.button("입장") and username.strip():
+        user_ip = get_ip()
+        st.session_state["ip"] = user_ip
+
         active = supabase.table("active_users").select("*").execute().data
-        if len(active) >= 3:
-            st.error("❌ 채팅방 정원은 최대 3명입니다.")
+
+        # 동일 IP 제한
+        if any(u.get("ip") == user_ip for u in active):
+            st.toast("❌ 동일한 기기(IP)에서는 중복 접속할 수 없습니다.", icon="⚠️", duration=10)
             st.stop()
 
+        # 인원 제한
+        if len(active) >= 3:
+            st.toast("❌ 채팅방 정원은 최대 3명입니다. 잠시 후 다시 시도해주세요.", icon="⚠️", duration=10)
+            st.stop()
+
+        # 접속자 등록
         supabase.table("active_users").upsert({
             "username": username,
+            "ip": user_ip,
             "joined_at": datetime.utcnow().isoformat()
         }).execute()
         st.session_state["username"] = username
@@ -93,7 +111,7 @@ if st.button("전송") and message.strip():
             "message": encrypted,
             "timestamp": datetime.utcnow().isoformat()
         }).execute()
-        st.experimental_set_query_params(msg_input="")  # 입력창 초기화
+        st.experimental_set_query_params(msg_input="")
         st.rerun()
     except Exception as e:
         st.error("❌ 메시지 전송 중 오류")
@@ -117,7 +135,7 @@ except Exception as e:
     st.exception(e)
 
 # --------------------------
-# 🔍 디버그 (테스트용)
+# 🔍 디버그
 # --------------------------
 st.markdown("---")
 st.write(f"**현재 접속자 수:** {len(supabase.table('active_users').select('*').execute().data)}")

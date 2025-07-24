@@ -21,8 +21,8 @@ cipher = Fernet(ENCRYPTION_KEY)
 # --------------------------
 st_autorefresh(interval=2000, key="autorefresh")
 
-st.set_page_config(page_title="🔐 암호화 채팅", layout="centered")
-st.title("🔐 암호화 채팅")
+st.set_page_config(page_title="Chatting", layout="centered")
+st.title("Chatting")
 
 # --------------------------
 # 🚪 나가기 로직

@@ -109,13 +109,3 @@ try:
 except Exception as e:
     st.error("❌ 메시지 불러오기 실패")
     st.exception(e)
-# --------------------------
-# 👥 현재 접속자 목록 표시
-# --------------------------
-st.subheader("👥 현재 접속자")
-try:
-    active_users = supabase.table("active_users").select("username, joined_at").order("joined_at").execute().data
-    for user in active_users:
-        st.markdown(f"• **{user['username']}** (입장: {user['joined_at'].split('T')[1][:8]})")
-except Exception as e:
-    st.warning("접속자 정보를 불러오지 못했습니다.")
